@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrashGame", "TrashGame\TrashGame.vcxproj", "{64392B63-100E-4118-AC2E-58D1A9D625F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{64392B63-100E-4118-AC2E-58D1A9D625F5}.Debug|x64.ActiveCfg = Debug|x64
+		{64392B63-100E-4118-AC2E-58D1A9D625F5}.Debug|x64.Build.0 = Debug|x64
+		{64392B63-100E-4118-AC2E-58D1A9D625F5}.Release|x64.ActiveCfg = Release|x64
+		{64392B63-100E-4118-AC2E-58D1A9D625F5}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69E48179-B2BE-4001-9468-1338C3A2023A}
+	EndGlobalSection
+EndGlobal
