@@ -2,6 +2,7 @@
 #include <SDL\SDL.h>
 #include "Renderer.h"
 #include "TileHandler.h"
+#include "Time.h"
 
 struct Settings
 {
@@ -24,7 +25,7 @@ struct Settings
 		tile_width = view_width / max_columns;
 		tile_height = view_height / max_rows;
 
-		lose_line_y = view_padding_top + 100.0f;
+		lose_line_y = view_padding_top + tile_height * 3;
 	}
 
 	int window_width;
@@ -45,7 +46,11 @@ struct Settings
 	int tile_height;
 	// Distance from the top of the view
 	int lose_line_y;
+
+	float initial_block_update_delay = 6.0f;
 };
+
+enum class GameState { STARTUP = 0, RUNNING, PAUSED, STOPPED, CLOSING};
 
 class TrashGame
 {
@@ -72,6 +77,11 @@ private:
 
 	Rectangle m_view_rectangle;
 	Rectangle m_lose_line;
+	GameState m_state;
+	Time m_time;
+	Timer m_block_update_timer;
+	float m_block_update_delay;
+	
 };
 
 TrashGame* CreateGame();

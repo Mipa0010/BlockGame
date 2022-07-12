@@ -294,3 +294,14 @@ void TileHandler::UpdateFallData()
 		}
 	}
 }
+
+void TileHandler::ClearTiles()
+{
+	m_selected.clear();
+	m_needs_update.clear();
+
+	for (auto& col : m_tiles)
+	{
+		col.clear();
+	}
+}

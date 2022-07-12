@@ -40,7 +40,7 @@ public:
 	void HandleClick(int mouse_x, int mouse_y);
 	std::vector<TileLocation>& SelectedTiles() { return (m_selected); }
 	void UpdateFalling(float delta);
-
+	void ClearTiles();
 private:
 	void AddColors();
 	void UpdateSelection();

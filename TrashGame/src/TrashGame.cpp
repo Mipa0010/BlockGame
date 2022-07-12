@@ -4,7 +4,6 @@
 #include <list>
 
 #include "TileHandler.h"
-#include "Time.h"
 
 TrashGame::TrashGame(SDL_Window*&& window, SDL_Renderer*&& renderer)
 	: m_window(window),  m_renderer(renderer)
@@ -15,6 +14,7 @@ TrashGame::TrashGame(SDL_Window*&& window, SDL_Renderer*&& renderer)
 	// TrashGame::m_window has ownership of the window
 	window = nullptr;
 
+	m_state = GameState::STARTUP;
 	SDL_SetWindowSize(m_window, m_settings.window_width, m_settings.window_height);
 	SDL_SetWindowPosition(m_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	
@@ -33,6 +33,7 @@ TrashGame::TrashGame(SDL_Window*&& window, SDL_Renderer*&& renderer)
 	m_renderer.SetClearColor(Color(255, 255, 180));
 
 	m_tile_handler = TileHandler(m_settings.tile_width, m_settings.tile_height, m_settings.max_columns, m_view_rectangle);
+	m_block_update_delay = m_settings.initial_block_update_delay;
 
 	srand(static_cast<unsigned int>(time(nullptr)));
 }
@@ -47,19 +48,13 @@ void TrashGame::Run()
 	m_tile_handler.GenerateRows(m_settings.initial_row_count);
 	m_tile_handler.RowBasedUpdate();
 
-	// For frame time calculations
-	Time time;
-	
-	// in seconds
-	float timer_max = 6;
-	float timer = timer_max;
+	m_state = GameState::RUNNING;
 
-	bool paused = false;
-	bool open = true;
-	while (open)
+	m_block_update_timer.Reset();
+	while (m_state != GameState::CLOSING)
 	{
 		// Timers
-		time.Update();
+		m_time.Update();
 
 		// Input handling
 		bool mouse_down = false;
@@ -69,36 +64,55 @@ void TrashGame::Run()
 			switch (e.type)
 			{
 			case SDL_QUIT:
-				open = false;
+				m_state = GameState::CLOSING;
 				break;
 			case SDL_MOUSEWHEEL:
 				if(e.wheel.y > 0)
 				{
-					if (timer_max == 0.5)
+					if (m_block_update_delay == 0.5)
 					{
-						timer_max = 1;
+						m_block_update_delay = 1;
 					}
 					else
 					{
-						timer_max += 1 * e.wheel.y;
+						m_block_update_delay += 1 * e.wheel.y;
 					}
 				}
 				else
 				{
-					timer_max += 1 * e.wheel.y;
-					if (timer_max <= 0)
-						timer_max = 0.5;
+					m_block_update_delay += 1 * e.wheel.y;
+					if (m_block_update_delay <= 0)
+						m_block_update_delay = 0.5;
 				}
 
-				timer = timer_max;
-				std::cout << timer << "/" << timer_max << std::endl;
+				m_block_update_timer.Reset();
+				std::cout << "Current new row delay: " << m_block_update_delay << std::endl;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				mouse_down = true;
 				break;
 			case SDL_KEYDOWN:
 				if (e.key.keysym.sym == SDLK_p)
-					paused = !paused;
+				{
+					if (m_state != GameState::STOPPED)
+					{
+						if (m_state == GameState::RUNNING)
+						{
+							m_state = GameState::PAUSED;
+						}
+						else
+						{
+							m_state = GameState::RUNNING;
+						}
+					}
+				}
+				else if (e.key.keysym.sym == SDLK_r)
+				{
+					m_tile_handler.ClearTiles();
+				}
+
+				// Using keyclicks over mouseclicks makes testing easier
+				// manual reset for the selected tiles is bound to SPACE
 				if (e.key.keysym.sym != SDLK_SPACE)
 					mouse_down = true;
 				else
@@ -107,7 +121,7 @@ void TrashGame::Run()
 			}
 		}
 
-		if (!open)
+		if (m_state == GameState::CLOSING)
 		{
 			break;
 		}
@@ -122,20 +136,18 @@ void TrashGame::Run()
 		{
 			m_tile_handler.HandleClick(mouse_x, mouse_y);
 		}
-
-		if(!paused)
+		
+		if(m_state == GameState::RUNNING)
 		{
-			timer -= time.delta_time;
-
-			if (timer <= 0)
+			if (m_block_update_timer.Elapsed() >= m_block_update_delay)
 			{
 				m_tile_handler.GenerateRows(1);
 				m_tile_handler.RowBasedUpdate();
-				timer = timer_max;
+				m_block_update_timer.Reset();
 			}
 		}
 
-		m_tile_handler.UpdateFalling(time.delta_time);
+		m_tile_handler.UpdateFalling(m_time.delta_time);
 
 		Render();
 	}
@@ -159,9 +171,6 @@ void TrashGame::Render()
 //Background 
 	m_renderer.Clear();
 
-	// Defeat line
-	m_renderer.DrawRect(m_lose_line);
-
 	// Tiles
 	for (auto& column : m_tile_handler.GetTiles())
 	{
@@ -179,6 +188,9 @@ void TrashGame::Render()
 	{
 		m_renderer.DrawTile(*(location.tile_it), m_view_rectangle, Color(255, 174, 25), Renderer::RenderFlag::NoFill);
 	}
+
+	// Defeat line
+	m_renderer.DrawRect(m_lose_line);
 
 	// Game view border
 	m_renderer.DrawRect(m_view_rectangle, Renderer::RenderFlag::NoFill);
