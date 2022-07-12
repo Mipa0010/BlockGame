@@ -28,3 +28,23 @@ struct Time
 	uint64_t last_frame_time;
 	float delta_time;
 };
+
+struct Timer
+{
+	Timer()
+	{
+		start_time = SDL_GetPerformanceCounter();
+	}
+
+	void Reset()
+	{
+		start_time = SDL_GetPerformanceCounter();
+	}
+
+	float Elapsed()
+	{
+		return (static_cast<double>(SDL_GetPerformanceCounter() - start_time) / SDL_GetPerformanceFrequency());
+	}
+
+	uint64_t start_time;
+};
