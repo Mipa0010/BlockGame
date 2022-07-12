@@ -144,6 +144,19 @@ void TrashGame::Run()
 				m_tile_handler.GenerateRows(1);
 				m_tile_handler.RowBasedUpdate();
 				m_block_update_timer.Reset();
+
+				// Check for the loss condition ie. check if any of the columns is tall enough
+				// to surpass the loss line
+				for (auto& col : m_tile_handler.m_tiles)
+				{
+					int col_height = col.size() * m_settings.tile_height;
+					int loss_line_y = m_view_rectangle.height - m_lose_line.GetY() + m_view_rectangle.GetY();
+					std::cout << col_height << "/" << loss_line_y << std::endl;
+					if (col_height >= loss_line_y)
+					{
+						m_state = GameState::STOPPED;
+					}
+				}
 			}
 		}
 
