@@ -47,10 +47,9 @@ void TrashGame::Run()
 {
 	m_tile_handler.GenerateRows(m_settings.initial_row_count);
 	m_tile_handler.RowBasedUpdate();
-
 	m_state = GameState::RUNNING;
-
 	m_block_update_timer.Reset();
+
 	while (m_state != GameState::CLOSING)
 	{
 		// Timers
@@ -109,6 +108,12 @@ void TrashGame::Run()
 				else if (e.key.keysym.sym == SDLK_r)
 				{
 					m_tile_handler.ClearTiles();
+					m_block_update_delay = m_settings.initial_block_update_delay;
+					m_state = GameState::RUNNING;
+					m_block_update_timer.Reset();
+
+					m_tile_handler.GenerateRows(m_settings.initial_row_count);
+					m_tile_handler.RowBasedUpdate();
 				}
 
 				// Using keyclicks over mouseclicks makes testing easier
